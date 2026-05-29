@@ -52,8 +52,16 @@ fi
 
 URL="http://${INGRESS_IP}:${INGRESS_PORT}/"
 echo "    GET $URL  (Host: nginx.local)"
-HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-  -H "Host: nginx.local" "$URL")
+
+# Retry up to 10 times — Istio config propagation to EnvoyProxy takes a few seconds
+HTTP_CODE="000"
+for i in $(seq 1 10); do
+  HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+    -H "Host: nginx.local" "$URL")
+  [[ "$HTTP_CODE" == "200" ]] && break
+  echo "    attempt $i: HTTP $HTTP_CODE, retrying in 5s..."
+  sleep 5
+done
 
 if [[ "$HTTP_CODE" == "200" ]]; then
   echo ""
