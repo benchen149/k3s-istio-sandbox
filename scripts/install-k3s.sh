@@ -4,8 +4,8 @@ set -euo pipefail
 abspath=$(cd "$(dirname "$0")/.." && pwd)
 source "$abspath/config/config.env"
 
-echo "==> Installing k3s (traefik disabled, kubeconfig world-readable)..."
-curl -sfL https://get.k3s.io | sh -s - \
+echo "==> Installing k3s ${K3S_VERSION} (traefik disabled, kubeconfig world-readable)..."
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="${K3S_VERSION}" sh -s - \
   --disable traefik \
   --write-kubeconfig-mode 644
 
