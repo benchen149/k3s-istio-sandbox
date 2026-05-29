@@ -68,6 +68,35 @@ Edit `config/config.env` to change versions:
             └── default.yaml    # IstioOperator config (single-node)
 ```
 
+## Testing the Ingress
+
+After `make install` (or `make verify-samples`), nginx is reachable via the Istio IngressGateway.
+Get the node IP:
+
+```bash
+kubectl get nodes -o wide   # INTERNAL-IP column
+```
+
+**Option 1 — curl with Host header (no DNS change needed)**
+
+```bash
+curl -H "Host: nginx.local" http://<NODE_IP>/
+```
+
+**Option 2 — add to /etc/hosts (enables browser access)**
+
+```bash
+echo "<NODE_IP>  nginx.local" | sudo tee -a /etc/hosts
+curl http://nginx.local/
+# or open http://nginx.local/ in a browser
+```
+
+To remove the hosts entry when done:
+
+```bash
+sudo sed -i '/nginx\.local/d' /etc/hosts
+```
+
 ## Smoke Test Scope
 
 `make verify-samples` only runs **01-deploy + 02-ingress**. The reasoning:
