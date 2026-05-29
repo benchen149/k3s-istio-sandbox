@@ -68,6 +68,20 @@ Edit `config/config.env` to change versions:
             └── default.yaml    # IstioOperator config (single-node)
 ```
 
+## Smoke Test Scope
+
+`make verify-samples` only runs **01-deploy + 02-ingress**. The reasoning:
+
+| Sample | Why included / excluded |
+|--------|------------------------|
+| 01-deploy | Verifies k3s scheduling and Istio sidecar injection |
+| 02-ingress | Verifies IngressGateway routing (the critical end-to-end path) |
+| 03-traffic | Requires deploying two app versions and observing traffic distribution — better explored manually |
+| 04-security | Requires creating multiple namespaces and verifying connection rejection — not suitable for automated teardown |
+| 05-telemetry | Configuration-only change with no immediately observable output — requires a metrics backend to verify |
+
+The two included samples together confirm the most important installation invariant: a workload can be injected with a sidecar and reached through the ingress gateway.
+
 ## Notes
 
 - Traefik is disabled on k3s install (avoids port conflicts with Istio ingress gateway)
