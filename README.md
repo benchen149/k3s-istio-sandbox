@@ -20,8 +20,11 @@ make install ISTIO_VERSION=1.29.2
 # Override both versions explicitly
 make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.1+k3s1
 
-# Verify
+# Verify cluster + Istio health
 make verify
+
+# Smoke test: deploy nginx, test HTTP routing via IngressGateway, cleanup
+make verify-samples
 
 # Tear down (Istio + k3s)
 make uninstall
