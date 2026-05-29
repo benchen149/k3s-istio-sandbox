@@ -2,11 +2,12 @@ import hashlib
 import hmac as hmac_module
 import time
 import importlib
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 from slack_webhook import verify_slack_signature
 import slack_webhook as sw
+import slack_webhook
 
 
 def _make_sig(secret: str, body: bytes, timestamp: str) -> str:
@@ -87,3 +88,74 @@ def test_endpoint_returns_200_with_pending_message(client):
 
     assert response.status_code == 200
     assert "處理中" in response.get_json()["text"]
+
+
+def _make_text_block(text: str):
+    block = MagicMock()
+    block.type = "text"
+    block.text = text
+    return block
+
+
+def _make_tool_use_block(tool_id: str, command: str):
+    block = MagicMock()
+    block.type = "tool_use"
+    block.name = "bash"
+    block.id = tool_id
+    block.input = {"command": command}
+    return block
+
+
+def test_run_claude_posts_result_to_slack(monkeypatch):
+    mock_response = MagicMock()
+    mock_response.stop_reason = "end_turn"
+    mock_response.content = [_make_text_block("✅ k3s 正常運行")]
+
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = mock_response
+
+    posted = []
+    monkeypatch.setattr(slack_webhook.anthropic, "Anthropic", lambda **kwargs: mock_client)
+    monkeypatch.setattr(slack_webhook.requests, "post", lambda url, json, timeout: posted.append(json))
+
+    slack_webhook.run_claude("make status", "https://hooks.slack.com/test", "fake-key")
+
+    assert len(posted) == 1
+    assert "✅ k3s 正常運行" in posted[0]["text"]
+
+
+def test_run_claude_executes_bash_tool(monkeypatch):
+    tool_response = MagicMock()
+    tool_response.stop_reason = "tool_use"
+    tool_response.content = [_make_tool_use_block("tool_1", "make status")]
+
+    final_response = MagicMock()
+    final_response.stop_reason = "end_turn"
+    final_response.content = [_make_text_block("✅ 完成")]
+
+    mock_client = MagicMock()
+    mock_client.messages.create.side_effect = [tool_response, final_response]
+
+    bash_calls = []
+    monkeypatch.setattr(slack_webhook, "run_bash", lambda cmd: bash_calls.append(cmd) or "active")
+    monkeypatch.setattr(slack_webhook.anthropic, "Anthropic", lambda **kwargs: mock_client)
+    monkeypatch.setattr(slack_webhook.requests, "post", lambda url, json, timeout: None)
+
+    slack_webhook.run_claude("make status", "https://hooks.slack.com/test", "fake-key")
+
+    assert "make status" in bash_calls
+    assert mock_client.messages.create.call_count == 2
+
+
+def test_run_claude_posts_error_on_exception(monkeypatch):
+    mock_client = MagicMock()
+    mock_client.messages.create.side_effect = RuntimeError("API down")
+
+    posted = []
+    monkeypatch.setattr(slack_webhook.anthropic, "Anthropic", lambda **kwargs: mock_client)
+    monkeypatch.setattr(slack_webhook.requests, "post", lambda url, json, timeout: posted.append(json))
+
+    slack_webhook.run_claude("make status", "https://hooks.slack.com/test", "fake-key")
+
+    assert len(posted) == 1
+    assert "❌" in posted[0]["text"]
