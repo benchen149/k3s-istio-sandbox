@@ -1,4 +1,7 @@
 import sys
-import os
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "scripts"))
+scripts_dir = Path(__file__).parent / "scripts"
+if not scripts_dir.exists():
+    raise RuntimeError(f"scripts directory not found at {scripts_dir}")
+sys.path.insert(0, str(scripts_dir))
