@@ -11,8 +11,14 @@ k3s cluster with Istio service mesh for Claude Code web sandbox.
 ## Quick Start
 
 ```bash
-# Full setup: k3s + Istio
+# Full setup: k3s + Istio (default versions)
 make install
+
+# Specify Istio version — k3s version auto-matched
+make install ISTIO_VERSION=1.29.2
+
+# Override both versions explicitly
+make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.1+k3s1
 
 # Verify
 make verify
