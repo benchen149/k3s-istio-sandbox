@@ -18,7 +18,7 @@ help:
 install: install-k3s install-istio
 
 install-k3s:
-	ISTIO_VERSION=$(ISTIO_VERSION) K3S_VERSION=$(K3S_VERSION) bash scripts/install-k3s.sh
+	sudo -n --preserve-env=ISTIO_VERSION,K3S_VERSION /usr/bin/bash $(CURDIR)/scripts/install-k3s.sh
 
 install-istio:
 	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/install-istio.sh
@@ -35,4 +35,5 @@ uninstall-istio:
 	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/uninstall-istio.sh
 
 uninstall-k3s:
-	bash scripts/uninstall-k3s.sh
+	sudo -n /usr/bin/bash $(CURDIR)/scripts/uninstall-k3s.sh
+
