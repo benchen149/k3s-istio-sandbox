@@ -14,7 +14,6 @@ cleanup() {
   kubectl delete -f "$abspath/samples/01-deploy/nginx.yaml" --ignore-not-found 2>/dev/null
   kubectl label namespace "$NS" istio-injection- --overwrite 2>/dev/null || true
 }
-trap cleanup EXIT
 
 # ── 1. Enable sidecar injection ───────────────────────────────────────────────
 echo "==> [1/4] Enable sidecar injection on namespace '$NS'..."

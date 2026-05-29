@@ -1,4 +1,4 @@
-.PHONY: help install install-k3s install-istio status verify verify-samples uninstall uninstall-istio uninstall-k3s
+.PHONY: help install install-k3s install-istio status verify verify-samples clean-samples uninstall uninstall-istio uninstall-k3s
 
 ISTIO_VERSION ?= 1.24.0
 
@@ -11,7 +11,8 @@ help:
 	@echo "  make install-istio  Install Istio only (k3s must be running)"
 	@echo "  make status            Show k3s cluster status (active / inactive / not-found)"
 	@echo "  make verify            Verify cluster and Istio health"
-	@echo "  make verify-samples    Smoke test: deploy nginx + ingress, assert HTTP 200, cleanup"
+	@echo "  make verify-samples    Smoke test: deploy nginx + ingress, assert HTTP 200 (resources kept)"
+	@echo "  make clean-samples     Remove resources left by verify-samples"
 	@echo "  make uninstall         Remove Istio and k3s"
 	@echo "  make uninstall-istio   Remove Istio only"
 	@echo "  make uninstall-k3s     Remove k3s only"
@@ -32,6 +33,11 @@ verify:
 
 verify-samples:
 	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/verify-samples.sh
+
+clean-samples:
+	kubectl delete -f samples/02-ingress/gateway-virtualservice.yaml --ignore-not-found
+	kubectl delete -f samples/01-deploy/nginx.yaml --ignore-not-found
+	kubectl label namespace default istio-injection- --overwrite 2>/dev/null || true
 
 uninstall: uninstall-istio uninstall-k3s
 
