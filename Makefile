@@ -1,4 +1,4 @@
-.PHONY: help install install-k3s install-istio verify uninstall
+.PHONY: help install install-k3s install-istio verify uninstall uninstall-istio uninstall-k3s
 
 ISTIO_VERSION ?= 1.24.0
 
@@ -9,8 +9,10 @@ help:
 	@echo "  make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.0+k3s1  Override k3s manually"
 	@echo "  make install-k3s    Install k3s only"
 	@echo "  make install-istio  Install Istio only (k3s must be running)"
-	@echo "  make verify         Verify cluster and Istio health"
-	@echo "  make uninstall      Remove Istio and k3s"
+	@echo "  make verify            Verify cluster and Istio health"
+	@echo "  make uninstall         Remove Istio and k3s"
+	@echo "  make uninstall-istio   Remove Istio only"
+	@echo "  make uninstall-k3s     Remove k3s only"
 
 install: install-k3s install-istio
 
@@ -23,5 +25,10 @@ install-istio:
 verify:
 	bash scripts/verify.sh
 
-uninstall:
-	bash scripts/uninstall.sh
+uninstall: uninstall-istio uninstall-k3s
+
+uninstall-istio:
+	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/uninstall-istio.sh
+
+uninstall-k3s:
+	bash scripts/uninstall-k3s.sh

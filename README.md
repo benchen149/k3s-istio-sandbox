@@ -23,8 +23,12 @@ make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.1+k3s1
 # Verify
 make verify
 
-# Tear down
+# Tear down (Istio + k3s)
 make uninstall
+
+# Tear down individually
+make uninstall-istio   # remove Istio only
+make uninstall-k3s     # remove k3s only
 ```
 
 ## Configuration
