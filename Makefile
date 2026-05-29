@@ -1,4 +1,4 @@
-.PHONY: help install install-k3s install-istio verify verify-samples uninstall uninstall-istio uninstall-k3s
+.PHONY: help install install-k3s install-istio status verify verify-samples uninstall uninstall-istio uninstall-k3s
 
 ISTIO_VERSION ?= 1.24.0
 
@@ -9,6 +9,7 @@ help:
 	@echo "  make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.0+k3s1  Override k3s manually"
 	@echo "  make install-k3s    Install k3s only"
 	@echo "  make install-istio  Install Istio only (k3s must be running)"
+	@echo "  make status            Show k3s cluster status (active / inactive / not-found)"
 	@echo "  make verify            Verify cluster and Istio health"
 	@echo "  make verify-samples    Smoke test: deploy nginx + ingress, assert HTTP 200, cleanup"
 	@echo "  make uninstall         Remove Istio and k3s"
@@ -22,6 +23,9 @@ install-k3s:
 
 install-istio:
 	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/install-istio.sh
+
+status:
+	@bash scripts/status.sh
 
 verify:
 	bash scripts/verify.sh
