@@ -17,7 +17,7 @@ help:
 	@echo "  make uninstall-istio   Remove Istio only"
 	@echo "  make uninstall-k3s     Remove k3s only"
 
-install: install-k3s install-istio
+install: install-k3s install-istio verify-samples
 
 install-k3s:
 	sudo -n --preserve-env=ISTIO_VERSION,K3S_VERSION /usr/bin/bash $(CURDIR)/scripts/install-k3s.sh
