@@ -1,0 +1,20 @@
+# Mesh-wide telemetry: remove high-cardinality tags, disable unused metrics
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: mesh-telemetry
+  namespace: istio-system
+spec:
+  metrics:
+  - overrides:
+    - match:
+        metric: GRPC_RESPONSE_MESSAGES
+        mode: CLIENT_AND_SERVER
+      disabled: true
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        source_workload:
+          operation: REMOVE
+        destination_workload:
+          operation: REMOVE

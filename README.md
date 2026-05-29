@@ -45,16 +45,24 @@ Edit `config/config.env` to change versions:
 
 ```
 ├── config/
-│   └── config.env          # versions and paths
+│   └── config.env              # versions, paths, compatibility table
 ├── scripts/
-│   ├── install-k3s.sh      # Install k3s (traefik disabled)
-│   ├── install-istio.sh    # Download istioctl + install Istio
-│   ├── verify.sh           # Verify cluster + Istio health
-│   └── uninstall.sh        # Remove Istio and k3s
+│   ├── install-k3s.sh          # Install k3s (traefik disabled)
+│   ├── install-istio.sh        # Download istioctl + install Istio
+│   ├── verify.sh               # Verify cluster + Istio health
+│   ├── uninstall-istio.sh      # Remove Istio only
+│   ├── uninstall-k3s.sh        # Remove k3s only
+│   └── uninstall.sh            # Remove both
+├── samples/
+│   ├── 01-deploy/              # Deployment + Service (nginx)
+│   ├── 02-ingress/             # Gateway + VirtualService
+│   ├── 03-traffic/             # DestinationRule + weighted VirtualService
+│   ├── 04-security/            # AuthorizationPolicy (allow / deny)
+│   └── 05-telemetry/           # Telemetry (tag overrides, metric disable)
 └── tools/
     └── istio/
         └── profiles/
-            └── default.yaml  # IstioOperator config (single-node)
+            └── default.yaml    # IstioOperator config (single-node)
 ```
 
 ## Notes

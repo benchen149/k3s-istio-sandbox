@@ -1,0 +1,34 @@
+# Expose nginx (from 01-deploy) via Istio IngressGateway
+# Access: curl -H "Host: nginx.local" http://<NODE_IP>:80/
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: nginx-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - nginx.local
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: nginx-vs
+  namespace: default
+spec:
+  gateways:
+  - nginx-gateway
+  hosts:
+  - nginx.local
+  http:
+  - route:
+    - destination:
+        host: nginx.default.svc.cluster.local
+        port:
+          number: 80

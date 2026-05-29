@@ -1,0 +1,15 @@
+# Deny traffic from namespace "ns-a" to helloworld in "ns-b"
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-ns-a-to-helloworld
+  namespace: ns-b
+spec:
+  selector:
+    matchLabels:
+      app: helloworld
+  action: DENY
+  rules:
+  - from:
+    - source:
+        namespaces: ["ns-a"]

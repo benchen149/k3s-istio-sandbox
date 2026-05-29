@@ -1,0 +1,16 @@
+# Allow traffic from namespace "ns-a" to helloworld in "ns-b"
+# Prerequisites: both namespaces must have istio-injection=enabled label
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-ns-a-to-helloworld
+  namespace: ns-b
+spec:
+  selector:
+    matchLabels:
+      app: helloworld
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["ns-a"]
