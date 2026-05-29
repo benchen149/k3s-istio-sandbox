@@ -51,11 +51,14 @@ def run_bash(command: str) -> str:
 
 
 def _post_to_slack(response_url: str, text: str) -> None:
-    requests.post(
-        response_url,
-        json={"response_type": "in_channel", "text": text},
-        timeout=10,
-    )
+    try:
+        requests.post(
+            response_url,
+            json={"response_type": "in_channel", "text": text},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        print(f"Failed to post to Slack: {exc}", flush=True)
 
 
 def run_claude(user_message: str, response_url: str, anthropic_api_key: str) -> None:
