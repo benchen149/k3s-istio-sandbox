@@ -1,0 +1,19 @@
+# Canary: route 90% traffic to v1, 10% to v2
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: vs-helloworld
+  namespace: default
+spec:
+  hosts:
+  - helloworld
+  http:
+  - route:
+    - destination:
+        host: helloworld
+        subset: v1
+      weight: 90
+    - destination:
+        host: helloworld
+        subset: v2
+      weight: 10

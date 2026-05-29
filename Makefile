@@ -1,23 +1,49 @@
-.PHONY: help install install-k3s install-istio verify uninstall
+.PHONY: help install install-k3s install-istio status verify verify-samples clean-samples uninstall uninstall-istio uninstall-k3s
+
+ISTIO_VERSION ?= 1.24.0
 
 help:
 	@echo "Usage:"
-	@echo "  make install        Install k3s + Istio (full setup)"
+	@echo "  make install                             Install k3s + Istio (Istio 1.24.0, k3s auto-matched)"
+	@echo "  make install ISTIO_VERSION=1.29.2        Auto-select compatible k3s version"
+	@echo "  make install ISTIO_VERSION=1.29.2 K3S_VERSION=v1.33.0+k3s1  Override k3s manually"
 	@echo "  make install-k3s    Install k3s only"
 	@echo "  make install-istio  Install Istio only (k3s must be running)"
-	@echo "  make verify         Verify cluster and Istio health"
-	@echo "  make uninstall      Remove Istio and k3s"
+	@echo "  make status            Show k3s cluster status (active / inactive / not-found)"
+	@echo "  make verify            Verify cluster and Istio health"
+	@echo "  make verify-samples    Smoke test: deploy nginx + ingress, assert HTTP 200 (resources kept)"
+	@echo "  make clean-samples     Remove resources left by verify-samples"
+	@echo "  make uninstall         Remove Istio and k3s"
+	@echo "  make uninstall-istio   Remove Istio only"
+	@echo "  make uninstall-k3s     Remove k3s only"
 
-install: install-k3s install-istio
+install: install-k3s install-istio verify-samples
 
 install-k3s:
-	bash scripts/install-k3s.sh
+	sudo -n --preserve-env=ISTIO_VERSION,K3S_VERSION /usr/bin/bash $(CURDIR)/scripts/install-k3s.sh
 
 install-istio:
-	bash scripts/install-istio.sh
+	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/install-istio.sh
+
+status:
+	@bash scripts/status.sh
 
 verify:
 	bash scripts/verify.sh
 
-uninstall:
-	bash scripts/uninstall.sh
+verify-samples:
+	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/verify-samples.sh
+
+clean-samples:
+	kubectl delete -f samples/02-ingress/gateway-virtualservice.yaml --ignore-not-found
+	kubectl delete -f samples/01-deploy/nginx.yaml --ignore-not-found
+	kubectl label namespace default istio-injection- --overwrite 2>/dev/null || true
+
+uninstall: uninstall-istio uninstall-k3s
+
+uninstall-istio:
+	ISTIO_VERSION=$(ISTIO_VERSION) bash scripts/uninstall-istio.sh
+
+uninstall-k3s:
+	sudo -n /usr/bin/bash $(CURDIR)/scripts/uninstall-k3s.sh
+

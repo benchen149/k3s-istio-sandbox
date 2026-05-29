@@ -10,8 +10,9 @@ export KUBECONFIG
 mkdir -p "$FOLDER_PATH_download"
 if [[ ! -f "$FOLDER_PATH_istio/bin/istioctl" ]]; then
   echo "==> Downloading Istio $istio_version..."
-  curl -sL https://istio.io/downloadIstio | \
-    ISTIO_VERSION="$istio_version" TARGET_ARCH=x86_64 sh - -d "$FOLDER_PATH_download"
+  (cd "$FOLDER_PATH_download" && \
+    curl -sL https://istio.io/downloadIstio | \
+    ISTIO_VERSION="$istio_version" TARGET_ARCH=x86_64 sh -)
 fi
 export PATH="$FOLDER_PATH_istio/bin:$PATH"
 echo "==> istioctl version: $(istioctl version --remote=false)"
@@ -22,8 +23,8 @@ envsubst '$istio_label' < "$abspath/tools/istio/profiles/default.yaml" \
   | istioctl install -y -f -
 
 # ── 3. Verify ─────────────────────────────────────────────────────────────
-echo "==> Verifying Istio installation..."
-istioctl verify-install
+echo "==> Waiting for Istio pods to be Ready..."
+kubectl -n istio-system wait --for=condition=Ready pod --all --timeout=120s
 kubectl -n istio-system get pods
 
 echo "==> Istio $istio_version installed successfully."
