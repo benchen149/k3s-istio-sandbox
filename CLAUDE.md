@@ -77,6 +77,30 @@ issue → feature branch → commit → PR → merge to develop → sync PR → 
 
 ---
 
+## 雲端 vs 本機分工
+
+本 repo 有三層，Claude Code 雲端 sandbox 只在前兩層可用：
+
+| 層 | 內容 | 雲端 | 本機 |
+|----|------|------|------|
+| 程式 / 工具 | `slack_webhook.py`、tests、Makefile、docs、scripts | ✅ 改 code、跑 `make test` | ✅ |
+| 研究查證 | 查 upstream Istio 原始碼、版本比對、feature flag 存在性 | ✅ 有網路、查 tag source | ✅ |
+| 執行期 / 叢集 | k3s + Istio 安裝、`verify-samples`、flag 執行期行為 | ❌ 無 sudo / systemd，k3s 裝不起來 | ✅ |
+
+### 任務路由準則（這件事該在哪做）
+
+- **叢集相關**（`make install`、`install-k3s`、`verify-samples`、flag 執行期行為）→ **一律本機**。雲端跑不了 k3s。
+- **開 issue** → **一律本機 gh**。雲端 GitHub 整合是 OAuth app，無 Issues 寫權限（實測 token 權限不足）。
+- **push branch / 開 PR** → **未驗證雲端是否可行，未確認前一律本機**。要放寬請先在雲端 session 實測 push + PR 成功再改此處。
+- **改 code / 跑測試 / source 研究** → 雲端或本機皆可。雲端優勢：乾淨可重現環境（issue #8 即由此暴露）、不佔本機、可平行、隨處可用。
+
+### 雲端注意事項
+
+- Setup script 執行時 working directory 不在 repo 根，`pip install -r requirements.txt` 會失敗 → 須**內聯列出依賴**（pin 與 `requirements.txt` 一致）。
+- 雲端**沒有 `gh` CLI**，GitHub 操作走 MCP；別在雲端叫它跑 `gh ...`。
+
+---
+
 ## Issue / PR 標題準則
 
 - **一律使用英文**
