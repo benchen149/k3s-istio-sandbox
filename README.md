@@ -140,6 +140,8 @@ Slack /claude <message>
 pip3 install -r requirements.txt
 ```
 
+> **雲端 sandbox**：Claude Code 雲端環境的 Setup script 同樣使用 `pip install -r requirements.txt`，依賴清單以此檔為單一來源。`make test` 透過 `python3 -m pytest` 執行，確保測試跑在安裝依賴的同一個 Python 環境，本機 / 雲端 / CI 行為一致。
+
 2. 複製環境變數範本並填入真實值：
 
 ```bash
