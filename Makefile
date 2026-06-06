@@ -59,5 +59,5 @@ serve-stop:
 	@[ -f /tmp/slack-webhook.pid ] && kill $$(cat /tmp/slack-webhook.pid) && rm /tmp/slack-webhook.pid && echo "Server stopped" || echo "Server not running"
 
 test:
-	pytest tests/ -v
+	python3 -m pytest tests/ -v
 
