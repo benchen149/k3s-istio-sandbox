@@ -116,6 +116,7 @@ The two included samples together confirm the most important installation invari
 - Traefik is disabled on k3s install (avoids port conflicts with Istio ingress gateway)
 - Istio is installed with Canary revision support (`revision` field set)
 - Single-node setup; HPA min/max replicas set to 1
+- 與 kind 並存 / 拆除時的注意事項見 [docs/k3s-kind-coexistence.md](docs/k3s-kind-coexistence.md)
 
 ## 研究與驗證流程（Research & Verification Workflow）
 
