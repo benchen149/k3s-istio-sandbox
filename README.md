@@ -117,6 +117,28 @@ The two included samples together confirm the most important installation invari
 - Istio is installed with Canary revision support (`revision` field set)
 - Single-node setup; HPA min/max replicas set to 1
 
+## 研究與驗證流程（Research & Verification Workflow）
+
+調查「某個 Istio 版本的某功能 / feature flag 是否存在、行為是否如預期」時，採**兩階段**分工 —— 雲端查 source、地端做實證。兩者各有不可取代的能力，缺一不可。
+
+| 階段 | 在哪做 | 能回答的問題 | 為什麼在這 |
+|------|--------|--------------|-----------|
+| **① Source 查證** | Claude Code 雲端 sandbox（或地端） | 「該功能 / flag 在這版**是否存在**」 | 有網路，可查 upstream Istio 任意 tag 原始碼、做跨版本比對；無需叢集 |
+| **② 執行期驗證** | **地端 k3s + 對應版 Istio** | 「打開後**行為是否真的如描述**」 | 需要真實 istiod / gateway，雲端無 sudo/systemd 跑不了 k3s |
+
+### 注意事項
+
+- **Feature flag 是編進 istiod 的 Go source**，不在 release tarball 的 CRD/helm chart 裡 → 查存在性要看該版 tag 的 `pilot/pkg/features/` **整個目錄**（套件曾重構拆檔，只 grep `pilot.go` 會誤判）。
+- 雲端 GitHub 整合是 OAuth app，**無 Issues 寫權限** → 研究結論在雲端產出，但**開 issue / 回填結論要用地端 `gh`**。
+- 執行期實驗會動到 running istiod，**測完務必還原**（移除 env、rollback、確認叢集回復原狀）。
+
+### 範例：`PILOT_FILTER_GATEWAY_CLUSTER_CONFIG` @ Istio 1.29.2
+
+完整紀錄見 [issue #15](https://github.com/benchen149/k3s-istio-sandbox/issues/15)：
+
+1. **① Source 查證**：查 tag `1.29.2` 的 `pilot/pkg/features/experimental.go`，確認 flag 仍存在（預設 `false`），並追出它在 1.22 起從 `pilot.go` 搬到 `experimental.go`。
+2. **② 執行期驗證**：在地端 Istio 1.29.2 上 `kubectl set env` 開啟 flag、rollout istiod，用 `istioctl proxy-config clusters <ingressgateway>` 對照 —— gateway 收到的 cluster 由 **21 降到 6**（outbound service cluster 16 → 1，只留下被 VirtualService 引用的 `nginx.default`），行為與 source 描述一致；測畢還原。
+
 ## Slack Integration
 
 `/claude <message>` slash command 可從 Slack 觸發 Claude，自動執行 k3s-istio-sandbox 操作並回傳結果。
