@@ -1,4 +1,4 @@
-.PHONY: help install install-k3s install-istio status verify verify-samples clean-samples uninstall uninstall-istio uninstall-k3s
+.PHONY: help install install-k3s install-istio status verify verify-samples clean-samples uninstall uninstall-istio uninstall-k3s serve serve-stop test
 
 ISTIO_VERSION ?= 1.24.0
 
@@ -16,6 +16,9 @@ help:
 	@echo "  make uninstall         Remove Istio and k3s"
 	@echo "  make uninstall-istio   Remove Istio only"
 	@echo "  make uninstall-k3s     Remove k3s only"
+	@echo "  make serve             Start Slack webhook server (requires .env)"
+	@echo "  make serve-stop        Stop Slack webhook server"
+	@echo "  make test              Run all tests"
 
 install: install-k3s install-istio verify-samples
 
@@ -46,4 +49,15 @@ uninstall-istio:
 
 uninstall-k3s:
 	sudo -n /usr/bin/bash $(CURDIR)/scripts/uninstall-k3s.sh
+
+serve:
+	@[ -f .env ] || (echo "Error: .env not found. Copy .env.example and fill in values." && exit 1)
+	nohup python3 scripts/slack_webhook.py > /tmp/slack-webhook.log 2>&1 & echo $$! > /tmp/slack-webhook.pid
+	@echo "Webhook server started (PID $$(cat /tmp/slack-webhook.pid)). Log: /tmp/slack-webhook.log"
+
+serve-stop:
+	@[ -f /tmp/slack-webhook.pid ] && kill $$(cat /tmp/slack-webhook.pid) && rm /tmp/slack-webhook.pid && echo "Server stopped" || echo "Server not running"
+
+test:
+	pytest tests/ -v
 

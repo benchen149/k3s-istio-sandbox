@@ -116,3 +116,61 @@ The two included samples together confirm the most important installation invari
 - Traefik is disabled on k3s install (avoids port conflicts with Istio ingress gateway)
 - Istio is installed with Canary revision support (`revision` field set)
 - Single-node setup; HPA min/max replicas set to 1
+
+## Slack Integration
+
+`/claude <message>` slash command 可從 Slack 觸發 Claude，自動執行 k3s-istio-sandbox 操作並回傳結果。
+
+### 架構
+
+```
+Slack /claude <message>
+    → POST /slack/command（VM 上的 webhook server）
+    → 立即回 ⏳ 處理中...
+    → 背景呼叫 Claude API（bash tool）
+    → Claude 執行 make / kubectl / gh 指令
+    → 結果 POST 回 Slack thread
+```
+
+### 安裝步驟
+
+1. 安裝相依套件：
+
+```bash
+pip3 install -r requirements.txt
+```
+
+2. 複製環境變數範本並填入真實值：
+
+```bash
+cp .env.example .env
+# 編輯 .env，填入 SLACK_SIGNING_SECRET / SLACK_BOT_TOKEN / ANTHROPIC_API_KEY
+```
+
+3. 啟動 webhook server：
+
+```bash
+make serve
+```
+
+4. 停止 webhook server：
+
+```bash
+make serve-stop
+```
+
+### Slack App 設定（一次性）
+
+1. 至 https://api.slack.com/apps → "From scratch" 建立 App
+2. **Slash Commands** → 新增 `/claude` → Request URL：`http://<VM_IP>:5000/slack/command`
+3. **OAuth & Permissions** → Bot Token Scopes：`commands`、`chat:write`
+4. 安裝 App 至 workspace → 複製 Bot Token → 存至 `.env`
+5. **Basic Information** → Signing Secret → 存至 `.env`
+
+### 使用範例
+
+```
+/claude 請幫我安裝 Istio 1.25.0 並驗證 sidecar injection
+/claude make status
+/claude 列出目前 k3s 的所有 pod
+```
